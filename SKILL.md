@@ -50,7 +50,8 @@ Patrones probados en `references/admin-patterns.md` (guardia, avisos, confirmaci
 - Orden de guardado seguro: subir fotos nuevas → upsert de filas con ids generados en el cliente (`crypto.randomUUID()`) → borrar las quitadas al final. Un fallo a mitad de camino no debe perder datos.
 - Reordenar con flechas: dos `update` intercambiando `display_order`. No uses upsert parcial: los NOT NULL del insert rompen el upsert aunque haya conflicto.
 - Textos: combina los valores por defecto del código con lo que hay en la base. Upsert `onConflict: 'section_key'` solo de lo modificado. Así funciona aunque el seed de textos no se haya corrido.
-- Login con "¿Olvidaste tu contraseña?" (`resetPasswordForEmail` + evento `PASSWORD_RECOVERY` → `updateUser`). Así el cliente no depende de la cuenta del desarrollador.
+- Login con "¿Olvidaste tu contraseña?" usando `resetPasswordForEmail(email, { redirectTo: origin + "/admin/login/?reset=1" })`. Si al cargar hay `?reset=1` y sesión, pide la clave nueva (`updateUser`); si hay `?reset=1` sin sesión, el enlace venció. No te fíes del `#type=recovery` ni del evento `PASSWORD_RECOVERY`: supabase-js borra el hash y emite el evento antes de que tu código escuche.
+- Agrega también **"Cambiar contraseña" dentro del panel** (`updateUser` con la sesión abierta). El SMTP gratuito de Supabase permite muy pocos correos por hora, así que el cliente no debe depender del correo.
 
 ## 5. Conectar el frontend público
 
@@ -85,4 +86,8 @@ Patrones probados en `references/admin-patterns.md` (guardia, avisos, confirmaci
 | `require(logic.js)` no exporta nada | `"type": "module"` vuelve ESM a los `.js` | El módulo asigna a `globalThis.X`; importarlo por efecto |
 | `<script>` clásico 404 tras `vite build` | Vite no empaqueta scripts sin `type="module"` | Importarlo desde el entry module |
 | La build falla con top-level await | Target por defecto es2020 | `build.target: "es2022"` |
+| El enlace de recuperación deja entrar al panel sin pedir clave nueva | supabase-js consume el `#access_token…&type=recovery` y limpia la URL | `redirectTo` con `?reset=1` y decidir por ese parámetro |
+| `email rate limit exceeded` | SMTP incluido en Supabase: unos pocos correos por hora | Esperar ~1 h, configurar SMTP propio (Resend, etc.) en Auth → SMTP, o cambiar la clave desde el panel |
+| Redirect del correo cae en la home | La URL con query no está permitida | Redirect URLs: `https://dominio/**` |
+| Registro abierto sin darte cuenta | Está activo por defecto | Verificar `GET /auth/v1/settings` → `disable_signup: true` |
 | Variables vacías en producción | No se configuraron en el hosting | Agregar las `VITE_*` en el panel del hosting y redeploy |
