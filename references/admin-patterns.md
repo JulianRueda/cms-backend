@@ -72,11 +72,11 @@ export async function compressImage(file) {
   if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error(`«${file.name}»: usa JPG, PNG o WebP.`);
   if (file.size > 15 * 1024 * 1024) throw new Error(`«${file.name}» pesa más de 15 MB.`);
   const bmp = await createImageBitmap(file);
-  const s = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+  const s = Math.min(1, 1200 / Math.max(bmp.width, bmp.height));
   const c = Object.assign(document.createElement("canvas"), { width: Math.round(bmp.width * s), height: Math.round(bmp.height * s) });
   const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); // PNG transparente
   ctx.drawImage(bmp, 0, 0, c.width, c.height);
-  const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.85)); // JPEG: compatible en todos los navegadores
+  const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.82)); // JPEG: Safari no codifica WebP desde canvas
   if (!blob || blob.size > 5 * 1024 * 1024) throw new Error(`«${file.name}» sigue pesando demasiado.`);
   return blob;
 }

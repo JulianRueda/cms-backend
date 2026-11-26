@@ -17,5 +17,7 @@ Luego, en Claude Code escribe `/supabase-cms-backend`, o pide algo como "hazle e
 - `SKILL.md`: el flujo completo (análisis, modelo de datos, seguridad, panel, verificación, entrega) y los errores conocidos.
 - `references/schema-template.sql`: tablas, RLS, GRANTs y bucket de fotos, probados en producción.
 - `references/admin-patterns.md`: código del panel (sesión, fotos, guardado seguro, orden, mock de pruebas).
+- `references/storefront-patterns.md`: tienda pública: menú con desplegable centrado, Contáctanos por WhatsApp, páginas legales editables, redes, copy cercano, cliente liviano e imágenes responsivas.
+- `references/catalog-and-images.md`: actualizar el catálogo desde un Word/Drive y dejar todas las fotos en un formato único (marco de marca, WebP 1080 + 540).
 
 Para actualizar la skill: `git pull` dentro de la carpeta.
