@@ -62,6 +62,16 @@ export async function framed(file, base) { // foto de estudio -> recorte del bla
 - Resultado en Dögker: 140 KB → 76 KB (1080) y 29 KB (540) por foto.
 - Antes de borrar los .jpg, haz que la web y el panel usen `pic()` (ver storefront-patterns.md); si no, la base sigue apuntando a `.jpg`.
 
+## 4b. Agregar más fotos a productos que ya existen (cientos de fotos sin nombre de producto)
+
+Caso real: zip con ~630 JPG de estudio numerados (`Dogker-Catalogo_ParteII-123.jpg`) + ~110 PNG con nombres informales ("Peluche gatico 2"). Resultado: 131 fotos para 76 productos.
+1. **Huella por foto**: recorta el blanco (`trim`), reduce a 48×48 e histograma de color 6×6×6 sin los píxeles casi blancos. A la foto actual del producto (con marco) recórtale antes el centro (`extract` de la zona blanca). Distancia = 1 − intersección de histogramas (no depende del ángulo).
+2. **Candidatas**: misma mejor coincidencia y distancia ≤ 0.15, **o** distancia ≤ 0.3 si la foto está a ±4 números de una "ancla" (distancia ≤ 0.05, que es la foto actual o su gemela): las fotos de un producto se tomaron seguidas.
+3. **Series con nombre**: agrupa por el nombre sin el número final; la serie entera va al producto donde mejor coincide cualquiera de sus fotos (≤ 0.12).
+4. **Variedad**: descarta las casi idénticas a la principal o entre sí (diferencia media de píxeles 32×32 ≤ 0.08) y deja máximo 4 extras. Omite productos que ya tienen varias fotos.
+5. **Revisión visual obligatoria**: hojas de contactos de 8–10 filas (foto actual + candidatas). Siempre aparecen errores: cartones de otra referencia, correas o bebederos que se cuelan en un transportador del mismo color. Exclúyelos por nombre de archivo; si una exclusión deja entrar otra candidata, revisa esa también.
+6. Guarda el mapeo (`supabase/fotos-extra.json`), procesa con `framed(file, "<slug>-f<n>")` y genera `fotos-extra.sql` (`insert … where not exists`, `display_order` 1..n). Verifica que cada URL del SQL tenga su `.webp` y su `-540.webp`.
+
 ## 5. Script del catálogo (`scripts/catalogo-<mes>.mjs`)
 
 Partes:
